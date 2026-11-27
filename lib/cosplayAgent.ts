@@ -5,7 +5,12 @@
 
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Created on first use, not at import time, so `next build` works without the key.
+let openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return openai;
+}
 
 export const COSPLAY_SYSTEM_PROMPT = `You are "CosplayMate" (คู่หูคอสเพลย์), a friendly AI cosplay assistant in the MaCosplayX app.
 
@@ -42,7 +47,7 @@ export async function chatWithCosplayMate(req: ChatRequest): Promise<{ reply: st
     { role: 'user', content: req.message },
   ];
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: process.env.OPENAI_MODEL || 'gpt-4o',
     messages,
     temperature: 0.8,

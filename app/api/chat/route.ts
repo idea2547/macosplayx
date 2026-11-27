@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Created on first request, not at import time, so `next build` works without the key.
+let openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return openai;
+}
 
 const SYSTEM_PROMPT = `You are CosplayMate, a friendly AI companion for cosplayers. You help with:
 - Costume recommendations and outfit planning
@@ -16,6 +19,10 @@ const SYSTEM_PROMPT = `You are CosplayMate, a friendly AI companion for cosplaye
 Be warm, enthusiastic, and knowledgeable about cosplay culture. Keep responses concise and conversational since this is a voice interface. Respond in Thai if the user speaks Thai, otherwise English.`;
 
 export async function POST(request: NextRequest) {
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ error: 'OPENAI_API_KEY is not configured' }, { status: 500 });
+  }
+
   try {
     const { message, history = [] } = await request.json();
 
@@ -25,7 +32,7 @@ export async function POST(request: NextRequest) {
       { role: 'user', content: message },
     ];
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages,
       max_tokens: 200,
