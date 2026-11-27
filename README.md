@@ -82,13 +82,26 @@ Dark-first theme. Purple primary (#7C3AED), pink secondary (#EC4899), teal accen
 
 ## Deploy
 
-```bash
-# Vercel (recommended)
-vercel deploy
+The app deploys to Cloudflare Workers via [OpenNext](https://opennext.js.org/cloudflare).
 
-# Or build locally
-bun build
-bun start
+### From GitHub (works from a phone)
+
+`.github/workflows/build-deploy.yml` builds every push and pull request, and deploys every push to `main`.
+To build or deploy on demand, open **Actions > Build and deploy > Run workflow** (works in the GitHub mobile app or a mobile browser).
+
+One-time setup, under **Settings > Secrets and variables > Actions**:
+
+| Secret | What it is |
+|--------|-----------|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with the "Edit Cloudflare Workers" template |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
+| `OPENAI_API_KEY` | Optional. If set, each deploy copies it to the Worker as a secret |
+
+### Locally
+
+```bash
+bun run deploy        # build + deploy
+bun run build         # plain Next.js build (no API key needed)
 ```
 
 ---
